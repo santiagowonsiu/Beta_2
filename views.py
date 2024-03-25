@@ -17,6 +17,7 @@ import random
 import glob
 import subprocess
 import time
+import sys
 import cut_master.experiments.__main__
 # This will import the __main__.py file from the cut_master package / folder to be able to access the function from the CUT model for image generation
 
@@ -217,6 +218,8 @@ def generate_objects(num_objects=1):
 
 
 #### EXECUTE TEST.PY AND WAIT TO RENDER THE GENERATED IMAGES
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 @views.route('/run_test', methods=['POST'])
 def run_test_route():
@@ -225,12 +228,13 @@ def run_test_route():
 
     # Look for the latest downloaded image in my files
     # Link where your downloads folder is where images are automatically downloaded from a browser, it must be that folder for the model to get the image
-    dir_path = '/Users/santiagowon/Downloads/'
+    dir_path = os.path.expanduser('~/Downloads')
     files = glob.glob(os.path.join(dir_path, '*.png'))
     latest_file = max(files, key=os.path.getctime)
 
     # Specify the target directory and file name 
-    target_dir = '/Users/santiagowon/Dropbox/Santiago/01. Maestria/AI & ML/Final Project/Learning Pieces - For Project/7. Web + GAN/cut_master/datasets/afhq/cat2dog/TestA'
+    target_dir = os.path.join(BASE_DIR, 'cut_master/datasets/afhq/cat2dog/TestA')
+    # ...
     target_file = 'testA.png'
 
     # Construct the full path of the target file
@@ -244,10 +248,9 @@ def run_test_route():
     ######## Get the TestB file: Copy Paste in TestB a random Landscape Image as input
 
     #Link where the dataset of lanscapes is
-    source_dir = '/Users/santiagowon/Dropbox/Santiago/01. Maestria/AI & ML/Final Project/Learning Pieces - For Project/7. Web + GAN/cut_master/datasets/grumpifycat/Dataset - Landscapes/All_Images'
-    
+    source_dir = os.path.join(BASE_DIR, 'cut_master/datasets/grumpifycat/Dataset - Landscapes/All_Images')
     #Link where the TestB (1 landscape image) will be pasted for the model to take as reference to transform
-    target_dir = '/Users/santiagowon/Dropbox/Santiago/01. Maestria/AI & ML/Final Project/Learning Pieces - For Project/7. Web + GAN/cut_master/datasets/afhq/cat2dog/TestB'
+    target_dir = os.path.join(BASE_DIR, 'cut_master/datasets/afhq/cat2dog/TestB')
     target_file = 'testB.png'
 
     # Get a list of all files in the source directory
@@ -267,13 +270,13 @@ def run_test_route():
 
     # Run the script
     # Link where test.py file is
-    result = subprocess.run(['/Users/santiagowon/anaconda3/bin/python', '/Users/santiagowon/Dropbox/Santiago/01. Maestria/AI & ML/Final Project/Learning Pieces - For Project/7. Web + GAN/cut_master/test.py'], capture_output=True, text=True)
-
+    result = subprocess.run([sys.executable, os.path.join(BASE_DIR, 'cut_master/test.py')], capture_output=True, text=True)
+    
     # Check if the script executed successfully
     if result.returncode == 0:
         # Get the latest generated PNG file
         # Link where the model will store 3 images: The Input TestA, the Input TestB and the Output
-        list_of_files = glob.glob('/Users/santiagowon/Dropbox/Santiago/01. Maestria/AI & ML/Final Project/Learning Pieces - For Project/7. Web + GAN/gen_image_png')  # path for image storing
+        list_of_files = glob.glob(os.path.join(BASE_DIR, 'gen_image_png', '*'))
         latest_file = max(list_of_files, key=os.path.getctime)
         return send_file(latest_file, mimetype='image/png')
     else:
@@ -284,7 +287,8 @@ def run_test_route():
 def latest_image_route1():
     # Get the latest generated PNG file
     # Make sure there is a folder created to store a duplicate of the Output images for display in the website
-    list_of_files = glob.glob('/Users/santiagowon/Dropbox/Santiago/01. Maestria/AI & ML/Final Project/Learning Pieces - For Project/7. Web + GAN/gen_image_display/*')  # path for image display reading
+    list_of_files = glob.glob(os.path.join(BASE_DIR, 'gen_image_display/*'))
+    # ...
     latest_file = max(list_of_files, key=os.path.getctime)
     return send_file(latest_file, mimetype='image/png')
 
@@ -293,7 +297,8 @@ def latest_image_route1():
 def latest_image_route2():
     # Get the latest generated PNG file
     # Make sure there is a folder created to store a duplicate of the TestA capture images for display in the website
-    list_of_files = glob.glob('/Users/santiagowon/Dropbox/Santiago/01. Maestria/AI & ML/Final Project/Learning Pieces - For Project/7. Web + GAN/capture_image/*')  # path for image display reading
+    list_of_files = glob.glob(os.path.join(BASE_DIR, 'capture_image/*'))
+    #
     latest_file = max(list_of_files, key=os.path.getctime)
     return send_file(latest_file, mimetype='image/png')
 
@@ -301,7 +306,7 @@ def latest_image_route2():
 def latest_image_route3():
     # Get the latest generated PNG file
     # Make sure there is a folder created to store a duplicate of the TestB Lanscape Dataset image for display in the website
-    list_of_files = glob.glob('/Users/santiagowon/Dropbox/Santiago/01. Maestria/AI & ML/Final Project/Learning Pieces - For Project/7. Web + GAN/landscape_image/*')  # path for image display reading
+    list_of_files = glob.glob(os.path.join(BASE_DIR, 'landscape_image/*'))
     latest_file = max(list_of_files, key=os.path.getctime)
     return send_file(latest_file, mimetype='image/png')
 
