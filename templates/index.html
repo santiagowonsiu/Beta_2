@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Project</title>
+    <style>
+        .container {
+            display: flex;
+        }
+        .half {
+            flex: 1;
+            width: 100%; /* Add this */
+            height: 100%; /* Add this */
+        }
+        .camera {
+            max-width: 90%;
+            max-height: 90%;
+            display: block;
+            margin: auto;
+        }
+        .webgl {
+            width: 100%; /* Add this */
+            height: 100%; /* Add this */
+        }
+    </style>
+</head>
+<body>
+    <h1>Generative AI for Emotions Detection through 3D Interpretation</h1>
+    <h2>Purpose</h2>
+    <p>This an exploratory website that explores the intersection of computer vision for pose recognition, 3D Objects generation through Three.js and GAN Models.</p>
+    <p>As the potential, this tool could help art in a more inclusive way, or could also go through the potential on how can we visualize our emotions in a more abstract way.</p>
+
+    <h2>Instructions</h2>
+    <ol>
+        <li>Generate as much 3D objects as you want, they will appear as it detects changes in your face from “sad” to “happy” and viceverse, or you can click in the “Generate Object” button</li>
+        <li>Click to capture the Image of your 3D Canvas (it will be saved in your downloads folder)</li>
+        <li>Click the “Run Generative AI – GAN Model” to run the model and wait for around 45 seconds.</li>
+        <li>Refresh the page to see your results.</li>
+    </ol>
+
+    <!-- Rest of your HTML code -->
+</body>
+<body>
+    <div class="container">
+        <div class="half">
+            <p>Change from "smile" to "sad" to generate objects.</p>
+            <img class="camera" src="{{ url_for('views.video_feed') }}" />
+        </div>
+        <div class="half">
+            <p>
+                <button id="start">Start</button>
+                <button id="stop">Stop</button>
+                <button id="generate">Generate Object</button>
+                <button id="clear">Clear Canvas</button>
+                <button id="capture">Capture Image</button>
+                <button id="runTestButton">Run Generative AI - GAN Model</button>
+            </p>
+            <script type="module" src="{{ url_for('static', filename='index.js')}}"></script>
+            <canvas class="webgl"></canvas>
+            <p>
+                <!-- <img src="/views/latest_Fake" alt="Latest Image"> -->
+                <table>
+                    <tr>
+                        <td>
+                            <figure>
+                                <img src="/views/latest_Capture" alt="Latest Image 1">
+                                <figcaption>Input Capture</figcaption>
+                            </figure>
+                        </td>
+                        <td>
+                            <figure>
+                                <img src="/views/latest_Landscape" alt="Latest Image 2">
+                                <figcaption>Random Landscape from Dataset</figcaption>
+                            </figure>
+                        </td>
+                        <td>
+                            <figure>
+                                <img src="/views/latest_Fake1" alt="Latest Image 3">
+                                <figcaption>GAN Generated</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                </table>
+            </p>
+        </div>
+    </div>
+    <div id="model_result">
+        <script>
+            document.getElementById('runTestButton').addEventListener('click', function() {
+                fetch('/views/run_test', { method: 'POST' })
+                .then(response => response.blob())
+                .then(image => {
+                    // Create a local URL of the image
+                    const image_url = URL.createObjectURL(image);
+            
+                    // Display the image
+                    const img = document.createElement('img');
+                    img.src = image_url;
+                    document.body.appendChild(img);
+                })
+                .catch(error => console.error('Error:', error));
+            });
+            </script>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script>
+        // This is the client-side script to connect to the server and receive the pose classification
+        console.log('Page loaded');
+        var socket = io.connect('http://127.0.0.1:5000');
+        socket.on('connect', function() {
+            console.log('Connected to server');
+        });
+        socket.on('connect_error', function(err) {
+            console.log('Error connecting to server: ' + err);
+        });
+
+        let previousClassification = null;
+
+        socket.on('pose_classification', function(msg) {
+            // Update your webpage with the pose classification
+            console.log('Pose classification: ' + msg.classification);
+
+            // If the pose classification is different from the previous one, generate a new object
+            if (msg.classification !== previousClassification) {
+                window.generateObject();
+                previousClassification = msg.classification;
+            }
+        });
+    </script>
+</body>
+</html>
